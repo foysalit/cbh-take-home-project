@@ -9,3 +9,4 @@ You've been asked to refactor the function `deterministicPartitionKey` in [`dpk.
 You will be graded on the exhaustiveness and quality of your unit tests, the depth of your refactor, and the level of insight into your thought process provided by the written explanation.
 
 ## Your Explanation Here
+The refactor takes 2 primary things into account. Making the code more DRY and reducing redundant conditionals. By extracting the crypto based hash generation into its own helper function, we are reducing repeated code. With the use of early return conditional we are reducing redundant conditional blocs making the code more readable.
