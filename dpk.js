@@ -1,28 +1,34 @@
 const crypto = require("crypto");
 
+
+const generateHashFromSeed = (seeder) => {
+  const seederKey = typeof seeder !== 'string'
+      ? JSON.stringify(seeder)
+      : seeder;
+
+  return crypto
+      .createHash("sha3-512")
+      .update(seederKey)
+      .digest("hex");
+}
+
 exports.deterministicPartitionKey = (event) => {
   const TRIVIAL_PARTITION_KEY = "0";
   const MAX_PARTITION_KEY_LENGTH = 256;
-  let candidate;
 
-  if (event) {
-    if (event.partitionKey) {
-      candidate = event.partitionKey;
-    } else {
-      const data = JSON.stringify(event);
-      candidate = crypto.createHash("sha3-512").update(data).digest("hex");
-    }
+  // Early exit to avoid unnecessary computation
+  if (!event) return TRIVIAL_PARTITION_KEY;
+
+  // if partitionKey is undefined entirely, use event as seeder and generate a hash as candidate
+  let key = event.partitionKey || generateHashFromSeed(event);
+
+  if (typeof key !== "string") {
+    key = JSON.stringify(key);
   }
 
-  if (candidate) {
-    if (typeof candidate !== "string") {
-      candidate = JSON.stringify(candidate);
-    }
-  } else {
-    candidate = TRIVIAL_PARTITION_KEY;
+  if (key.length > MAX_PARTITION_KEY_LENGTH) {
+    return generateHashFromSeed(key);
   }
-  if (candidate.length > MAX_PARTITION_KEY_LENGTH) {
-    candidate = crypto.createHash("sha3-512").update(candidate).digest("hex");
-  }
-  return candidate;
+
+  return key;
 };
